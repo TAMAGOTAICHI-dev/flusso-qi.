@@ -1,0 +1,1237 @@
+HTML
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flusso Qi – Il Giardino del Tai Chi</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --bg-deep: #0b1412;
+      --bg-card: rgba(18, 32, 28, 0.85);
+      --jade: #38a882;
+      --jade-light: #6ce0b6;
+      --gold: #e4b860;
+      --cream: #f4efe6;
+      --muted: #a7bcb4;
+      --border: rgba(108, 224, 182, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #162a25 0%, var(--bg-deep) 75%);
+      color: var(--cream);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+    }
+
+    header.topbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 22px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      backdrop-filter: blur(12px);
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-orb {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, var(--jade-light), var(--jade) 65%, #164938);
+      box-shadow: 0 0 18px rgba(56, 168, 130, 0.55);
+    }
+
+    .brand h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+
+    .brand span {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .stats-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pill {
+      background: rgba(11, 20, 18, 0.75);
+      border: 1px solid var(--border);
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill strong {
+      color: var(--gold);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--jade), #257b5e);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s;
+      box-shadow: 0 4px 14px rgba(56, 168, 130, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(56, 168, 130, 0.45);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--cream);
+      box-shadow: none;
+    }
+
+    .btn-outline:hover {
+      background: rgba(108, 224, 182, 0.12);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #e4b860, #b8872d);
+      color: #141816;
+      box-shadow: 0 4px 14px rgba(228, 184, 96, 0.3);
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 22px;
+    }
+
+    @media (max-width: 860px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .card-header h2 {
+      font-size: 1.1rem;
+      color: var(--jade-light);
+    }
+
+    #gardenCanvas {
+      width: 100%;
+      height: 290px;
+      border-radius: 14px;
+      display: block;
+      background: #0e1c19;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .garden-footer {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .forms-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-card {
+      background: rgba(10, 19, 17, 0.72);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 15px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .form-card:hover {
+      border-color: var(--jade-light);
+      transform: translateY(-2px);
+    }
+
+    .form-info h3 {
+      font-size: 1rem;
+      margin-bottom: 4px;
+      color: var(--cream);
+    }
+
+    .form-info p {
+      font-size: 0.83rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .form-meta {
+      margin-top: 6px;
+      font-size: 0.76rem;
+      color: var(--gold);
+    }
+
+    /* Practice Session View */
+    #practiceView {
+      display: none;
+    }
+
+    .practice-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      border-radius: 16px;
+    }
+
+    .practice-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .instructor-badge {
+      background: rgba(228, 184, 96, 0.16);
+      border: 1px solid rgba(228, 184, 96, 0.45);
+      color: var(--gold);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .camera-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .cam-btn {
+      background: rgba(18, 32, 28, 0.85);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .cam-btn.active, .cam-btn:hover {
+      background: rgba(56, 168, 130, 0.25);
+      border-color: var(--jade-light);
+      color: var(--cream);
+    }
+
+    .stage-wrapper {
+      position: relative;
+      width: 100%;
+      height: 540px;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: radial-gradient(circle at 50% 35%, #203b35 0%, #0d1917 85%);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    #taichi3DContainer {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+
+    #taichi3DContainer:active {
+      cursor: grabbing;
+    }
+
+    /* Guida testuale compatta e schiacciata in basso a sinistra, senza coprire i piedi */
+    .guide-overlay-left {
+      position: absolute;
+      left: 14px;
+      bottom: 12px;
+      max-width: 310px;
+      background: rgba(11, 21, 19, 0.82);
+      border: 1px solid rgba(108, 224, 182, 0.32);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 8px 12px;
+      pointer-events: none;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .guide-phase-tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .guide-step-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--jade-light);
+      margin-bottom: 2px;
+    }
+
+    .guide-step-desc {
+      font-size: 0.78rem;
+      color: var(--cream);
+      line-height: 1.28;
+    }
+
+    .breath-bar-wrap {
+      margin-top: 6px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .breath-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--jade), var(--gold));
+      transition: width 0.1s linear;
+    }
+
+    /* License Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 11, 10, 0.82);
+      backdrop-filter: blur(8px);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-box {
+      background: #132420;
+      border: 1px solid var(--jade);
+      border-radius: 20px;
+      max-width: 440px;
+      width: 100%;
+      padding: 26px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-box h3 {
+      color: var(--gold);
+      margin-bottom: 10px;
+      font-size: 1.25rem;
+    }
+
+    .modal-box p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      margin-bottom: 16px;
+    }
+
+    .modal-box input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0b1513;
+      color: var(--cream);
+      font-size: 0.95rem;
+      text-align: center;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .license-msg {
+      font-size: 0.83rem;
+      min-height: 20px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-orb"></div>
+        <div>
+          <h1>Flusso Qi</h1>
+          <span>Il Giardino del Tai Chi</span>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="pill">🌿 Armonia Giardino: <strong id="gardenLevelText">Livello 1 – Germoglio</strong></div>
+        <div class="pill">✨ Energia Qi: <strong id="qiPointsText">20</strong></div>
+        <button class="btn btn-gold" id="licenseBtn" onclick="openLicenseModal()">🔑 Attiva Licenza</button>
+      </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <main id="dashboardView" class="dashboard-grid">
+      <section class="card">
+        <div class="card-header">
+          <h2>Il Tuo Giardino Zen</h2>
+          <span style="font-size:0.8rem; color:var(--muted);">Cresce con la tua costanza</span>
+        </div>
+        <canvas id="gardenCanvas"></canvas>
+        <div class="garden-footer">
+          <span id="gardenStatusDesc">Pratica ogni giorno per far sbocciare il ciliegio e illuminare la lanterna.</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-outline" onclick="evolveGarden()">+ Evolvi (Demo)</button>
+            <button class="btn btn-outline" onclick="simulateNeglect()">Simula Pausa</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Scegli la Pratica Guidata</h2>
+          <span style="font-size:0.8rem; color:var(--gold);">Principianti &amp; Armonia</span>
+        </div>
+        <div class="forms-list" id="formsContainer"></div>
+      </section>
+    </main>
+
+    <!-- SESSIONE PRATICA 3D -->
+    <section id="practiceView">
+      <div class="practice-header">
+        <div class="practice-title-group">
+          <h2 id="sessionTitle" style="font-size:1.15rem; color:var(--jade-light);">Risveglio del Qi</h2>
+          <span id="instructorBadge" class="instructor-badge">Istruttore: Maestro Kenji</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="pill">⏱️ <strong id="sessionTimerDisplay">03:00</strong></div>
+          <button class="btn btn-outline" onclick="endSession()">Esci</button>
+        </div>
+      </div>
+
+      <div class="camera-controls">
+        <button class="cam-btn active" onclick="setCameraAngle('front', this)">Vista Frontale (Chiara)</button>
+        <button class="cam-btn" onclick="setCameraAngle('threeQuarter', this)">Angolo 3/4 (Profondità)</button>
+        <button class="cam-btn" onclick="setCameraAngle('side', this)">Profilo Laterale (Passi)</button>
+      </div>
+
+      <div class="stage-wrapper">
+        <div id="taichi3DContainer"></div>
+
+        <!-- Guida testuale compatta in basso a sinistra -->
+        <div class="guide-overlay-left">
+          <div class="guide-phase-tag" id="guidePhaseTag">FASE 1 · INSPIRA</div>
+          <div class="guide-step-title" id="guideStepTitle">Radicamento e Sollevamento</div>
+          <div class="guide-step-desc" id="guideStepDesc">Piega leggermente le ginocchia e solleva morbide le braccia fino alle spalle.</div>
+          <div class="breath-bar-wrap">
+            <div class="breath-bar-fill" id="breathBarFill"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODALE LICENZA -->
+  <div class="modal-backdrop" id="licenseModal">
+    <div class="modal-box">
+      <h3>Sblocca Tutte le Forme di Tai Chi</h3>
+      <p>Inserisci la tua chiave di licenza personale ricevuta dopo l'acquisto su Gumroad per attivare l'accesso completo e illimitato.</p>
+      <input type="text" id="licenseInput" placeholder="Es. QI-2026-MASTER" />
+      <div class="license-msg" id="licenseMsg"></div>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button class="btn" onclick="verifyLicense()">Verifica Chiave</button>
+        <button class="btn btn-outline" onclick="closeLicenseModal()">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      qiPoints: 20,
+      gardenLevel: 1,
+      isPro: localStorage.getItem('flusso_qi_pro') === 'true',
+      currentFormIndex: 0,
+      inSession: false,
+      sessionSecondsLeft: 180,
+      instructorGender: 'male',
+      lastCycleIndex: -1
+    };
+
+    const gardenLevels = [
+      { level: 1, name: 'Livello 1 – Germoglio', desc: 'Il giardino è quieto. Un piccolo germoglio attende la tua energia.' },
+      { level: 2, name: 'Livello 2 – Acqua Viva', desc: 'Lo stagno si riempie d’acqua limpida e le pietre si risvegliano.' },
+      { level: 3, name: 'Livello 3 – Boccioli di Ciliegio', desc: 'Il Sakura inizia a fiorire e la lanterna si accende di luce calda.' },
+      { level: 4, name: 'Livello 4 – Armonia Suprema', desc: 'Fioritura completa, carpe Koi nello stagno e pace interiore.' }
+    ];
+
+    const taichiForms = [
+      {
+        title: '1. Risveglio del Qi (Onda Morbida)',
+        desc: 'Impari a coordinare respiro, ginocchia morbide e sollevamento fluido delle braccia.',
+        duration: 180,
+        free: true
+      },
+      {
+        title: '2. Separare la Criniera del Cavallo',
+        desc: 'Spostamento del peso da una gamba all’altra con apertura diagonale delle mani.',
+        duration: 240,
+        free: false
+      },
+      {
+        title: '3. Mani come Nuvole (Flusso Continuo)',
+        desc: 'Rotazione lenta del busto mentre le mani disegnano cerchi armoniosi nell’aria.',
+        duration: 300,
+        free: false
+      }
+    ];
+
+    function renderFormsList() {
+      const container = document.getElementById('formsContainer');
+      container.innerHTML = '';
+      taichiForms.forEach((form, idx) => {
+        const locked = !form.free && !state.isPro;
+        const div = document.createElement('div');
+        div.className = 'form-card';
+        div.innerHTML = `
+          <div class="form-info">
+            <h3>${form.title} ${locked ? '🔒' : '✨'}</h3>
+            <p>${form.desc}</p>
+            <div class="form-meta">Durata: ${Math.floor(form.duration / 60)} min · ${form.free ? 'Inclusa' : (state.isPro ? 'Sbloccata PRO' : 'Richiede Licenza')}</div>
+          </div>
+          <button class="btn ${locked ? 'btn-gold' : ''}" onclick="${locked ? 'openLicenseModal()' : `startSession(${idx})`}">
+            ${locked ? 'Sblocca' : 'Inizia'}
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateTopStats() {
+      const lvl = gardenLevels[state.gardenLevel - 1] || gardenLevels[0];
+      document.getElementById('gardenLevelText').textContent = lvl.name;
+      document.getElementById('gardenStatusDesc').textContent = lvl.desc;
+      document.getElementById('qiPointsText').textContent = state.qiPoints;
+      const licBtn = document.getElementById('licenseBtn');
+      if (state.isPro) {
+        licBtn.textContent = '✅ Licenza PRO Attiva';
+        licBtn.classList.remove('btn-gold');
+      }
+    }
+
+    function evolveGarden() {
+      if (state.gardenLevel < 4) state.gardenLevel++;
+      state.qiPoints += 25;
+      updateTopStats();
+    }
+
+    function simulateNeglect() {
+      if (state.gardenLevel > 1) state.gardenLevel--;
+      updateTopStats();
+    }
+
+    function openLicenseModal() {
+      document.getElementById('licenseModal').style.display = 'flex';
+    }
+
+    function closeLicenseModal() {
+      document.getElementById('licenseModal').style.display = 'none';
+    }
+
+    function verifyLicense() {
+      const val = document.getElementById('licenseInput').value.trim().toUpperCase();
+      const msg = document.getElementById('licenseMsg');
+      if (val.startsWith('QI-') && val.length >= 8) {
+        state.isPro = true;
+        localStorage.setItem('flusso_qi_pro', 'true');
+        msg.style.color = '#6ce0b6';
+        msg.textContent = 'Licenza valida! Tutte le forme sono ora sbloccate.';
+        updateTopStats();
+        renderFormsList();
+        setTimeout(closeLicenseModal, 1100);
+      } else {
+        msg.style.color = '#ff8a80';
+        msg.textContent = 'Chiave non valida. Prova ad esempio: QI-2026-MASTER';
+      }
+    }
+
+    // --- PARTICELLARE AMBIENTALE & GIARDINO ZEN 2D ---
+    const bgCanvas = document.getElementById('bgCanvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    const gardenCanvas = document.getElementById('gardenCanvas');
+    const gCtx = gardenCanvas.getContext('2d');
+    let ambientParticles = [];
+
+    function initAmbientParticles() {
+      ambientParticles = Array.from({ length: 34 }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        r: 1.2 + Math.random() * 2.4,
+        vx: -0.25 + Math.random() * 0.5,
+        vy: -0.35 - Math.random() * 0.35,
+        alpha: 0.2 + Math.random() * 0.5
+      }));
+    }
+
+    function drawAmbientBackground() {
+      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      ambientParticles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.y < -10) p.y = bgCanvas.height + 10;
+        if (p.x < -10) p.x = bgCanvas.width + 10;
+        if (p.x > bgCanvas.width + 10) p.x = -10;
+        bgCtx.beginPath();
+        bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        bgCtx.fillStyle = `rgba(108, 224, 182, ${p.alpha})`;
+        bgCtx.fill();
+      });
+    }
+
+    function drawZenGarden(t) {
+      const w = gardenCanvas.width;
+      const h = gardenCanvas.height;
+      gCtx.clearRect(0, 0, w, h);
+
+      // Cielo gradiente
+      const sky = gCtx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, '#132824');
+      sky.addColorStop(1, '#0c1816');
+      gCtx.fillStyle = sky;
+      gCtx.fillRect(0, 0, w, h);
+
+      // Luna soffusa
+      gCtx.beginPath();
+      gCtx.arc(w * 0.78, h * 0.24, 28, 0, Math.PI * 2);
+      gCtx.fillStyle = 'rgba(244, 239, 230, 0.16)';
+      gCtx.fill();
+
+      // Montagne sullo sfondo
+      gCtx.fillStyle = '#18332d';
+      gCtx.beginPath();
+      gCtx.moveTo(0, h * 0.65);
+      gCtx.lineTo(w * 0.28, h * 0.36);
+      gCtx.lineTo(w * 0.55, h * 0.62);
+      gCtx.lineTo(w * 0.82, h * 0.32);
+      gCtx.lineTo(w, h * 0.58);
+      gCtx.lineTo(w, h);
+      gCtx.lineTo(0, h);
+      gCtx.fill();
+
+      // Terreno sabbia rastrellata
+      gCtx.fillStyle = '#1c302b';
+      gCtx.fillRect(0, h * 0.66, w, h * 0.34);
+
+      gCtx.strokeStyle = 'rgba(167, 188, 180, 0.16)';
+      gCtx.lineWidth = 1.5;
+      for (let i = 0; i < 5; i++) {
+        const y = h * 0.71 + i * 14;
+        gCtx.beginPath();
+        for (let x = 0; x <= w; x += 20) {
+          gCtx.lineTo(x, y + Math.sin(x * 0.03 + t * 0.001 + i) * 2.5);
+        }
+        gCtx.stroke();
+      }
+
+      // Livello 2+: Stagno
+      if (state.gardenLevel >= 2) {
+        gCtx.fillStyle = 'rgba(56, 168, 130, 0.35)';
+        gCtx.beginPath();
+        gCtx.ellipse(w * 0.66, h * 0.82, 78, 22, 0, 0, Math.PI * 2);
+        gCtx.fill();
+      }
+
+      // Tronco alberello / ciliegio
+      gCtx.strokeStyle = '#5c4033';
+      gCtx.lineWidth = state.gardenLevel >= 3 ? 8 : 4;
+      gCtx.beginPath();
+      gCtx.moveTo(w * 0.25, h * 0.74);
+      gCtx.quadraticCurveTo(w * 0.23, h * 0.55, w * 0.28, h * 0.44);
+      gCtx.stroke();
+
+      // Chioma ciliegio in base al livello
+      if (state.gardenLevel === 1) {
+        gCtx.fillStyle = '#6ce0b6';
+        gCtx.beginPath();
+        gCtx.arc(w * 0.28, h * 0.43, 10, 0, Math.PI * 2);
+        gCtx.fill();
+      } else {
+        const radius = state.gardenLevel === 2 ? 26 : (state.gardenLevel === 3 ? 44 : 56);
+        gCtx.fillStyle = state.gardenLevel >= 3 ? 'rgba(244, 164, 184, 0.82)' : 'rgba(108, 224, 182, 0.7)';
+        gCtx.beginPath();
+        gCtx.arc(w * 0.28, h * 0.41, radius, 0, Math.PI * 2);
+        gCtx.arc(w * 0.21, h * 0.46, radius * 0.72, 0, Math.PI * 2);
+        gCtx.arc(w * 0.35, h * 0.46, radius * 0.72, 0, Math.PI * 2);
+        gCtx.fill();
+      }
+
+      // Livello 3+: Lanterna accesa
+      if (state.gardenLevel >= 3) {
+        gCtx.fillStyle = '#8b9994';
+        gCtx.fillRect(w * 0.47, h * 0.61, 14, 24);
+        gCtx.fillStyle = '#ffd573';
+        gCtx.beginPath();
+        gCtx.arc(w * 0.47 + 7, h * 0.58, 7 + Math.sin(t * 0.005) * 1.5, 0, Math.PI * 2);
+        gCtx.fill();
+      }
+
+      // Livello 4: Carpa Koi nello stagno
+      if (state.gardenLevel >= 4) {
+        const kx = w * 0.66 + Math.cos(t * 0.002) * 35;
+        const ky = h * 0.82 + Math.sin(t * 0.002) * 8;
+        gCtx.fillStyle = '#ff7b54';
+        gCtx.beginPath();
+        gCtx.ellipse(kx, ky, 9, 4, 0, 0, Math.PI * 2);
+        gCtx.fill();
+      }
+    }
+
+    // --- SCENA 3D CON FIGURA UMANA ANATOMICA ---
+    let scene3D, camera3D, renderer3D, stageInitialized = false;
+    let bodyParts3D = {};
+    let cameraPreset = { pos: [0, 1.15, 3.65], target: [0, 0.92, 0] };
+    let isDragging3D = false, prevMouseX = 0, userYawOffset = 0;
+
+    function createLimbMesh(rTop, rBot, len, mat) {
+      const geo = new THREE.CylinderGeometry(rTop, rBot, len, 20);
+      geo.translate(0, -len / 2, 0);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.castShadow = true;
+      return mesh;
+    }
+
+    function createJointSphere(r, mat) {
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 18), mat);
+      mesh.castShadow = true;
+      return mesh;
+    }
+
+    function createHumanHand(skinMat, isLeft) {
+      const handGroup = new THREE.Group();
+      const sign = isLeft ? 1 : -1;
+
+      // Palmo anatomico
+      const palm = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.095, 0.026), skinMat);
+      palm.position.y = -0.045;
+      handGroup.add(palm);
+
+      // 4 dita affusolate
+      for (let i = 0; i < 4; i++) {
+        const finger = new THREE.Mesh(new THREE.CylinderGeometry(0.0075, 0.0055, 0.068, 10), skinMat);
+        finger.position.set((-0.026 + i * 0.017) * sign, -0.12, 0);
+        finger.rotation.x = 0.14;
+        handGroup.add(finger);
+      }
+
+      // Pollice
+      const thumb = new THREE.Mesh(new THREE.CylinderGeometry(0.0085, 0.0065, 0.052, 10), skinMat);
+      thumb.position.set(0.044 * sign, -0.06, 0.014);
+      thumb.rotation.z = -0.55 * sign;
+      handGroup.add(thumb);
+
+      return handGroup;
+    }
+
+    function createHumanFoot(shoeMat) {
+      const footGroup = new THREE.Group();
+      // Tallone e arco plantare
+      const heel = new THREE.Mesh(new THREE.SphereGeometry(0.044, 16, 16), shoeMat);
+      heel.scale.set(0.95, 0.8, 1.2);
+      heel.position.set(0, -0.02, -0.02);
+      footGroup.add(heel);
+
+      // Avampiede
+      const sole = new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.042, 0.17), shoeMat);
+      sole.position.set(0, -0.026, 0.055);
+      footGroup.add(sole);
+
+      // Punta arrotondata
+      const toes = new THREE.Mesh(new THREE.SphereGeometry(0.041, 16, 16), shoeMat);
+      toes.scale.set(1.0, 0.55, 1.15);
+      toes.position.set(0, -0.026, 0.135);
+      footGroup.add(toes);
+
+      return footGroup;
+    }
+
+    function initTaiChi3DScene() {
+      const container = document.getElementById('taichi3DContainer');
+      if (stageInitialized) return;
+      stageInitialized = true;
+
+      scene3D = new THREE.Scene();
+      camera3D = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera3D.position.set(...cameraPreset.pos);
+
+      renderer3D = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer3D.setSize(container.clientWidth, container.clientHeight);
+      renderer3D.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer3D.shadowMap.enabled = true;
+      container.appendChild(renderer3D.domElement);
+
+      // Luci morbide da studio Zen
+      const hemiLight = new THREE.HemisphereLight(0xf6f3eb, 0x1b332d, 0.95);
+      scene3D.add(hemiLight);
+
+      const keyLight = new THREE.DirectionalLight(0xfff4df, 1.15);
+      keyLight.position.set(2.5, 4.5, 3.2);
+      keyLight.castShadow = true;
+      scene3D.add(keyLight);
+
+      const rimLight = new THREE.DirectionalLight(0x6ce0b6, 0.55);
+      rimLight.position.set(-2.5, 2.8, -2.5);
+      scene3D.add(rimLight);
+
+      // Pedana circolare Zen
+      const platform = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.15, 1.25, 0.08, 48),
+        new THREE.MeshStandardMaterial({ color: 0x1c312c, roughness: 0.75 })
+      );
+      platform.position.y = -0.04;
+      platform.receiveShadow = true;
+      scene3D.add(platform);
+
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(1.02, 1.06, 48),
+        new THREE.MeshBasicMaterial({ color: 0x6ce0b6, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = 0.003;
+      scene3D.add(ring);
+
+      // Materiali realistici
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xe8b99a, roughness: 0.52 });
+      const tunicMat = new THREE.MeshStandardMaterial({ color: 0xf4efe6, roughness: 0.65 });
+      const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1f3631, roughness: 0.75 });
+      const beltMat = new THREE.MeshStandardMaterial({ color: 0x38a882, roughness: 0.5 });
+      const hairMat = new THREE.MeshStandardMaterial({ color: 0x1a1817, roughness: 0.45 });
+      const shoeMat = new THREE.MeshStandardMaterial({ color: 0x141918, roughness: 0.8 });
+
+      const pelvisGroup = new THREE.Group();
+      pelvisGroup.position.y = 0.94;
+      scene3D.add(pelvisGroup);
+
+      // Bacino e cintura di giada
+      const pelvisMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.145, 0.155, 0.16, 24), pantsMat);
+      pelvisGroup.add(pelvisMesh);
+
+      const beltMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.055, 24), beltMat);
+      beltMesh.position.y = 0.08;
+      pelvisGroup.add(beltMesh);
+
+      // Torace e pettorali scolpiti
+      const torsoGroup = new THREE.Group();
+      torsoGroup.position.y = 0.08;
+      pelvisGroup.add(torsoGroup);
+
+      const chestMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.185, 0.145, 0.42, 24), tunicMat);
+      chestMesh.position.y = 0.21;
+      chestMesh.scale.set(1.08, 1, 0.72);
+      torsoGroup.add(chestMesh);
+
+      // Pettorali anatomici
+      const pecL = new THREE.Mesh(new THREE.SphereGeometry(0.085, 16, 16), tunicMat);
+      pecL.scale.set(1.1, 0.85, 0.55);
+      pecL.position.set(0.072, 0.31, 0.095);
+      torsoGroup.add(pecL);
+
+      const pecR = pecL.clone();
+      pecR.position.x = -0.072;
+      torsoGroup.add(pecR);
+
+      // Collo e testa umana
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.062, 0.11, 18), skinMat);
+      neck.position.y = 0.45;
+      torsoGroup.add(neck);
+
+      const headGroup = new THREE.Group();
+      headGroup.position.y = 0.58;
+      torsoGroup.add(headGroup);
+
+      const cranium = new THREE.Mesh(new THREE.SphereGeometry(0.105, 24, 24), skinMat);
+      cranium.scale.set(0.92, 1.12, 0.98);
+      headGroup.add(cranium);
+
+      // Naso e occhi espressivi
+      const nose = new THREE.Mesh(new THREE.ConeGeometry(0.015, 0.042, 12), skinMat);
+      nose.position.set(0, -0.005, 0.102);
+      nose.rotation.x = 0.25;
+      headGroup.add(nose);
+
+      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x1b1918 });
+      const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.011, 10, 10), eyeMat);
+      eyeL.position.set(0.036, 0.018, 0.092);
+      const eyeR = eyeL.clone();
+      eyeR.position.x = -0.036;
+      headGroup.add(eyeL, eyeR);
+
+      // Capelli uomo (chignon) e capelli donna (fluenti)
+      const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.109, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.58), hairMat);
+      hairCap.rotation.x = -0.22;
+      headGroup.add(hairCap);
+
+      const maleBun = new THREE.Mesh(new THREE.SphereGeometry(0.036, 14, 14), hairMat);
+      maleBun.position.set(0, 0.095, -0.045);
+      headGroup.add(maleBun);
+
+      const femaleHair = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.125, 0.34, 18, 1, true), hairMat);
+      femaleHair.position.set(0, -0.09, -0.035);
+      femaleHair.visible = false;
+      headGroup.add(femaleHair);
+
+      // Braccio Sinistro
+      const lShoulder = new THREE.Group();
+      lShoulder.position.set(0.215, 0.38, 0);
+      torsoGroup.add(lShoulder);
+      lShoulder.add(createJointSphere(0.056, tunicMat));
+      lShoulder.add(createLimbMesh(0.052, 0.042, 0.27, tunicMat));
+
+      const lElbow = new THREE.Group();
+      lElbow.position.y = -0.27;
+      lShoulder.add(lElbow);
+      lElbow.add(createJointSphere(0.04, skinMat));
+      lElbow.add(createLimbMesh(0.038, 0.029, 0.25, skinMat));
+
+      const lWrist = new THREE.Group();
+      lWrist.position.y = -0.25;
+      lElbow.add(lWrist);
+      lWrist.add(createHumanHand(skinMat, true));
+
+      // Braccio Destro
+      const rShoulder = new THREE.Group();
+      rShoulder.position.set(-0.215, 0.38, 0);
+      torsoGroup.add(rShoulder);
+      rShoulder.add(createJointSphere(0.056, tunicMat));
+      rShoulder.add(createLimbMesh(0.052, 0.042, 0.27, tunicMat));
+
+      const rElbow = new THREE.Group();
+      rElbow.position.y = -0.27;
+      rShoulder.add(rElbow);
+      rElbow.add(createJointSphere(0.04, skinMat));
+      rElbow.add(createLimbMesh(0.038, 0.029, 0.25, skinMat));
+
+      const rWrist = new THREE.Group();
+      rWrist.position.y = -0.25;
+      rElbow.add(rWrist);
+      rWrist.add(createHumanHand(skinMat, false));
+
+      // Gamba Sinistra
+      const lHip = new THREE.Group();
+      lHip.position.set(0.105, -0.04, 0);
+      pelvisGroup.add(lHip);
+      lHip.add(createLimbMesh(0.078, 0.058, 0.42, pantsMat));
+
+      const lKnee = new THREE.Group();
+      lKnee.position.y = -0.42;
+      lHip.add(lKnee);
+      lKnee.add(createJointSphere(0.055, pantsMat));
+      lKnee.add(createLimbMesh(0.056, 0.042, 0.42, pantsMat));
+
+      const lAnkle = new THREE.Group();
+      lAnkle.position.y = -0.42;
+      lKnee.add(lAnkle);
+      lAnkle.add(createHumanFoot(shoeMat));
+
+      // Gamba Destra
+      const rHip = new THREE.Group();
+      rHip.position.set(-0.105, -0.04, 0);
+      pelvisGroup.add(rHip);
+      rHip.add(createLimbMesh(0.078, 0.058, 0.42, pantsMat));
+
+      const rKnee = new THREE.Group();
+      rKnee.position.y = -0.42;
+      rHip.add(rKnee);
+      rKnee.add(createJointSphere(0.055, pantsMat));
+      rKnee.add(createLimbMesh(0.056, 0.042, 0.42, pantsMat));
+
+      const rAnkle = new THREE.Group();
+      rAnkle.position.y = -0.42;
+      rKnee.add(rAnkle);
+      rAnkle.add(createHumanFoot(shoeMat));
+
+      bodyParts3D = {
+        pelvisGroup, torsoGroup, headGroup,
+        lShoulder, lElbow, lWrist,
+        rShoulder, rElbow, rWrist,
+        lHip, lKnee, lAnkle,
+        rHip, rKnee, rAnkle,
+        tunicMat, beltMat, maleBun, femaleHair
+      };
+
+      // Controllo trascinamento orizzontale delicato
+      const dom = renderer3D.domElement;
+      dom.addEventListener('pointerdown', e => { isDragging3D = true; prevMouseX = e.clientX; });
+      window.addEventListener('pointerup', () => { isDragging3D = false; });
+      window.addEventListener('pointermove', e => {
+        if (!isDragging3D) return;
+        userYawOffset += (e.clientX - prevMouseX) * 0.008;
+        prevMouseX = e.clientX;
+      });
+    }
+
+    function setCameraAngle(mode, btn) {
+      document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      userYawOffset = 0;
+      if (mode === 'front') cameraPreset = { pos: [0, 1.15, 3.65], target: [0, 0.92, 0] };
+      if (mode === 'threeQuarter') cameraPreset = { pos: [1.95, 1.25, 3.1], target: [0, 0.92, 0] };
+      if (mode === 'side') cameraPreset = { pos: [3.55, 1.15, 0.25], target: [0, 0.92, 0] };
+    }
+
+    function applyInstructorStyle(gender) {
+      if (!bodyParts3D.tunicMat) return;
+      const badge = document.getElementById('instructorBadge');
+      if (gender === 'male') {
+        bodyParts3D.tunicMat.color.setHex(0xf4efe6);
+        bodyParts3D.beltMat.color.setHex(0x38a882);
+        bodyParts3D.maleBun.visible = true;
+        bodyParts3D.femaleHair.visible = false;
+        bodyParts3D.torsoGroup.scale.set(1.04, 1.02, 1.02);
+        badge.textContent = 'Istruttore: Maestro Kenji';
+      } else {
+        bodyParts3D.tunicMat.color.setHex(0xebe3f2);
+        bodyParts3D.beltMat.color.setHex(0xd68fd6);
+        bodyParts3D.maleBun.visible = false;
+        bodyParts3D.femaleHair.visible = true;
+        bodyParts3D.torsoGroup.scale.set(0.92, 0.98, 0.94);
+        badge.textContent = 'Istruttrice: Maestra Mei Lin';
+      }
+    }
+
+    function drawTaiChiSession(nowMs) {
+      if (!state.inSession || !bodyParts3D.pelvisGroup) return;
+
+      const cycleDuration = 10000;
+      const cycleIdx = Math.floor(nowMs / cycleDuration);
+      if (cycleIdx !== state.lastCycleIndex) {
+        state.lastCycleIndex = cycleIdx;
+        state.instructorGender = cycleIdx % 2 === 0 ? 'male' : 'female';
+        applyInstructorStyle(state.instructorGender);
+      }
+
+      const progress = (nowMs % cycleDuration) / cycleDuration;
+      const wave = Math.sin(progress * Math.PI * 2 - Math.PI / 2) * 0.5 + 0.5;
+      const sway = Math.sin(progress * Math.PI * 2);
+
+      document.getElementById('breathBarFill').style.width = `${Math.round(progress * 100)}%`;
+
+      // Aggiorna testo guida in basso a sinistra
+      const phaseTag = document.getElementById('guidePhaseTag');
+      const stepTitle = document.getElementById('guideStepTitle');
+      const stepDesc = document.getElementById('guideStepDesc');
+
+      if (progress < 0.5) {
+        phaseTag.textContent = 'FASE 1 · INSPIRA LENTAMENTE';
+        stepTitle.textContent = 'Solleva e Distendi';
+        stepDesc.textContent = 'Distendi dolce le ginocchia e lascia salire le mani fino all’altezza delle spalle.';
+      } else {
+        phaseTag.textContent = 'FASE 2 · ESPIRA E RADICA';
+        stepTitle.textContent = 'Affonda e Rilassa';
+        stepDesc.textContent = 'Piega leggermente le ginocchia e accompagna le mani verso il basso con calma.';
+      }
+
+      // Cinematica fluida per principianti
+      const squat = (1 - wave) * 0.14;
+      bodyParts3D.pelvisGroup.position.y = 0.94 - squat * 0.45;
+      bodyParts3D.pelvisGroup.rotation.y = userYawOffset;
+
+      bodyParts3D.lHip.rotation.x = -squat * 1.4;
+      bodyParts3D.lKnee.rotation.x = squat * 2.8;
+      bodyParts3D.lAnkle.rotation.x = -squat * 1.4;
+
+      bodyParts3D.rHip.rotation.x = -squat * 1.4;
+      bodyParts3D.rKnee.rotation.x = squat * 2.8;
+      bodyParts3D.rAnkle.rotation.x = -squat * 1.4;
+
+      if (state.currentFormIndex === 0) {
+        // Forma 1: Risveglio del Qi
+        bodyParts3D.torsoGroup.rotation.y = 0;
+        bodyParts3D.lShoulder.rotation.x = -wave * 1.35;
+        bodyParts3D.lShoulder.rotation.z = 0.12;
+        bodyParts3D.lElbow.rotation.x = -0.35 - wave * 0.25;
+        bodyParts3D.lWrist.rotation.x = 0.25 * wave;
+
+        bodyParts3D.rShoulder.rotation.x = -wave * 1.35;
+        bodyParts3D.rShoulder.rotation.z = -0.12;
+        bodyParts3D.rElbow.rotation.x = -0.35 - wave * 0.25;
+        bodyParts3D.rWrist.rotation.x = 0.25 * wave;
+      } else if (state.currentFormIndex === 1) {
+        // Forma 2: Separare la Criniera del Cavallo
+        bodyParts3D.torsoGroup.rotation.y = sway * 0.35;
+        bodyParts3D.lShoulder.rotation.x = -0.65 - sway * 0.55;
+        bodyParts3D.lShoulder.rotation.z = 0.28;
+        bodyParts3D.lElbow.rotation.x = -0.55;
+
+        bodyParts3D.rShoulder.rotation.x = -0.65 + sway * 0.55;
+        bodyParts3D.rShoulder.rotation.z = -0.28;
+        bodyParts3D.rElbow.rotation.x = -0.55;
+      } else {
+        // Forma 3: Mani come Nuvole
+        bodyParts3D.torsoGroup.rotation.y = sway * 0.45;
+        bodyParts3D.lShoulder.rotation.x = -0.85 + Math.cos(progress * Math.PI * 2) * 0.35;
+        bodyParts3D.lShoulder.rotation.z = 0.22 + sway * 0.15;
+        bodyParts3D.lElbow.rotation.x = -0.75;
+
+        bodyParts3D.rShoulder.rotation.x = -0.85 - Math.cos(progress * Math.PI * 2) * 0.35;
+        bodyParts3D.rShoulder.rotation.z = -0.22 + sway * 0.15;
+        bodyParts3D.rElbow.rotation.x = -0.75;
+      }
+
+      camera3D.position.lerp(new THREE.Vector3(...cameraPreset.pos), 0.08);
+      camera3D.lookAt(...cameraPreset.target);
+      renderer3D.render(scene3D, camera3D);
+    }
+
+    let timerInterval = null;
+
+    function startSession(formIdx) {
+      state.currentFormIndex = formIdx;
+      state.inSession = true;
+      state.sessionSecondsLeft = taichiForms[formIdx].duration;
+      state.lastCycleIndex = -1;
+
+      document.getElementById('dashboardView').style.display = 'none';
+      document.getElementById('practiceView').style.display = 'block';
+      document.getElementById('sessionTitle').textContent = taichiForms[formIdx].title;
+
+      initTaiChi3DScene();
+      resizeAllCanvases();
+      updateTimerDisplay();
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (state.sessionSecondsLeft > 0) {
+          state.sessionSecondsLeft--;
+          updateTimerDisplay();
+        } else {
+          evolveGarden();
+          endSession();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = String(Math.floor(state.sessionSecondsLeft / 60)).padStart(2, '0');
+      const s = String(state.sessionSecondsLeft % 60).padStart(2, '0');
+      document.getElementById('sessionTimerDisplay').textContent = `${m}:${s}`;
+    }
+
+    function endSession() {
+      state.inSession = false;
+      clearInterval(timerInterval);
+      document.getElementById('practiceView').style.display = 'none';
+      document.getElementById('dashboardView').style.display = 'grid';
+    }
+
+    function resizeAllCanvases() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+      gardenCanvas.width = gardenCanvas.clientWidth || 500;
+      gardenCanvas.height = gardenCanvas.clientHeight || 290;
+
+      const container = document.getElementById('taichi3DContainer');
+      if (renderer3D && camera3D && container.clientWidth > 0) {
+        camera3D.aspect = container.clientWidth / container.clientHeight;
+        camera3D.updateProjectionMatrix();
+        renderer3D.setSize(container.clientWidth, container.clientHeight);
+      }
+    }
+
+    function mainLoop(now) {
+      drawAmbientBackground();
+      if (!state.inSession) {
+        drawZenGarden(now);
+      } else {
+        drawTaiChiSession(now);
+      }
+      requestAnimationFrame(mainLoop);
+    }
+
+    window.addEventListener('resize', resizeAllCanvases);
+    initAmbientParticles();
+    renderFormsList();
+    updateTopStats();
+    resizeAllCanvases();
+    requestAnimationFrame(mainLoop);
+  </script>
+</body>
+</html>
